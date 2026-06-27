@@ -18,6 +18,10 @@ const lobbyStore = new LobbyStore()
 
 const app = express()
 
+app.get('/', (_request, response) => {
+  response.send('cargame backend is running')
+})
+
 app.get('/health', (_request, response) => {
   response.json({ ok: true })
 })
