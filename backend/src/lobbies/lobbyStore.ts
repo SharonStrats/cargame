@@ -1,5 +1,4 @@
 import { randomBytes } from 'node:crypto'
-import { DEFAULT_CAR_APPEARANCE } from '@cargame/shared'
 import type { CarAppearance, PlayerProfile, PlayerTransform, RoomSummary, UserId } from '@cargame/shared'
 
 export interface LobbyPlayer extends PlayerProfile {
@@ -31,6 +30,11 @@ export interface LeaveResult {
 }
 
 const DEFAULT_MAX_PLAYERS = 8
+
+const DEFAULT_CAR_APPEARANCE: CarAppearance = {
+  carId: 'starter-sprint',
+  color: 0x4cc9f0,
+}
 
 function createLobbyId() {
   return randomBytes(3).toString('hex').toUpperCase()
