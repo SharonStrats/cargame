@@ -178,7 +178,7 @@ export class CarSkinPicker extends LitElement {
 
   public set appearance(value: CarAppearance) {
     const oldValue = this._appearance
-    this._appearance = value ?? DEFAULT_CAR_APPEARANCE
+    this._appearance = value ? { ...value } : DEFAULT_CAR_APPEARANCE
     this.requestUpdate('appearance', oldValue)
   }
 
@@ -259,7 +259,7 @@ export class CarSkinPicker extends LitElement {
     console.log('[car-skin-picker] select clicked', this._appearance)
     this.dispatchEvent(
       new CustomEvent('select-skin', {
-        detail: { appearance: this._appearance },
+        detail: { appearance: { ...this._appearance } },
         bubbles: true,
         composed: true,
       }),

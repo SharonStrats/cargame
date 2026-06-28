@@ -84,11 +84,11 @@ const handleSelectSkin = (event: Event) => {
 
   console.log('[skin-picker] skin selected', detail.appearance)
 
-  draftAppearance = detail.appearance
+  draftAppearance = { ...detail.appearance }
   skinPickerOpen = false
 
   if (currentSnapshot.lobbyId) {
-    gameClient.updatePlayerAppearance(detail.appearance)
+    gameClient.updatePlayerAppearance({ ...detail.appearance })
   }
 
   renderApp()

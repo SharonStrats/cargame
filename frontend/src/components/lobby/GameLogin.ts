@@ -133,7 +133,7 @@ export class GameLogin extends LitElement {
 
   public set appearance(value: CarAppearance) {
     const oldValue = this._appearance
-    this._appearance = value ?? DEFAULT_CAR_APPEARANCE
+    this._appearance = value ? { ...value } : DEFAULT_CAR_APPEARANCE
     this.requestUpdate('appearance', oldValue)
   }
 

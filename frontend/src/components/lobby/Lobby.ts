@@ -119,7 +119,7 @@ export class Lobby extends LitElement {
 
   public set appearance(value: CarAppearance) {
     const oldValue = this._appearance
-    this._appearance = value ?? DEFAULT_CAR_APPEARANCE
+    this._appearance = value ? { ...value } : DEFAULT_CAR_APPEARANCE
     this.requestUpdate('appearance', oldValue)
   }
 
@@ -154,16 +154,16 @@ export class Lobby extends LitElement {
                     const appearance = player.appearance ?? DEFAULT_CAR_APPEARANCE
 
                     return html`
-                    <li>
-                      <div class="player-row">
-                        ${this.renderPlayerCar(appearance.color)}
-                        <div>
-                          <span class="player-name">${player.name}</span>
-                          ${player.connected ? '' : html`<span class="player-status">(offline)</span>`}
+                      <li>
+                        <div class="player-row">
+                          ${this.renderPlayerCar(appearance.color)}
+                          <div>
+                            <span class="player-name">${player.name}</span>
+                            ${player.connected ? '' : html`<span class="player-status">(offline)</span>`}
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  `
+                      </li>
+                    `
                   },
                 )}
               </ul>
