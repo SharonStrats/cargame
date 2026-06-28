@@ -7,7 +7,6 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "postinstall": "npm run build",
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   }
 }

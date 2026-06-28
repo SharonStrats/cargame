@@ -10,11 +10,9 @@
   "main": "dist/server.js",
   "scripts": {
     "prebuild": "npm run build --prefix ../packages/shared",
-    "postinstall": "node scripts/install-shared-package.mjs",
     "dev": "tsx watch src/server.ts",
     "dev:raw": "tsx watch src/server.ts",
     "predev": "npm run build --prefix ../packages/shared",
-    "prestart": "node scripts/install-shared-package.mjs",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
