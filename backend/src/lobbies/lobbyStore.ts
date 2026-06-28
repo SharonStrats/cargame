@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto'
-import type { PlayerProfile, PlayerTransform, RoomSummary, UserId } from '@cargame/shared'
+import { DEFAULT_CAR_APPEARANCE } from '@cargame/shared'
+import type { CarAppearance, PlayerProfile, PlayerTransform, RoomSummary, UserId } from '@cargame/shared'
 
 export interface LobbyPlayer extends PlayerProfile {
   socketId: string
@@ -42,6 +43,7 @@ function toPlayerProfile(player: LobbyPlayer): PlayerProfile {
     name: player.name,
     connected: player.connected,
     transform: player.transform,
+    appearance: player.appearance,
   }
 }
 
@@ -97,11 +99,16 @@ export class LobbyStore {
     return this.lobbies.get(lobbyId) ?? null
   }
 
-  createLobby(socketId: string, name: string, maxPlayers = DEFAULT_MAX_PLAYERS): LobbySnapshot {
+  createLobby(
+    socketId: string,
+    name: string,
+    maxPlayers = DEFAULT_MAX_PLAYERS,
+    appearance: CarAppearance = DEFAULT_CAR_APPEARANCE,
+  ): LobbySnapshot {
     this.leaveSocket(socketId)
 
     const id = createLobbyId()
-    const player = this.createPlayer(socketId, name)
+    const player = this.createPlayer(socketId, name, appearance)
     const lobby: LobbyRecord = {
       id,
       name: `Lobby ${id}`,
@@ -119,7 +126,7 @@ export class LobbyStore {
     return toSnapshot(lobby)
   }
 
-  joinLobby(socketId: string, lobbyId: string, name: string): LobbySnapshot | null {
+  joinLobby(socketId: string, lobbyId: string, name: string, appearance: CarAppearance = DEFAULT_CAR_APPEARANCE): LobbySnapshot | null {
     const lobby = this.lobbies.get(lobbyId)
 
     if (!lobby || lobby.players.length >= lobby.maxPlayers) {
@@ -128,7 +135,7 @@ export class LobbyStore {
 
     this.leaveSocket(socketId)
 
-    const player = this.createPlayer(socketId, name)
+    const player = this.createPlayer(socketId, name, appearance)
     lobby.players.push(player)
     lobby.gameStarted = false
     this.socketToLobbyId.set(socketId, lobbyId)
@@ -192,7 +199,7 @@ export class LobbyStore {
     }
   }
 
-  private createPlayer(socketId: string, name: string): LobbyPlayer {
+  private createPlayer(socketId: string, name: string, appearance: CarAppearance = DEFAULT_CAR_APPEARANCE): LobbyPlayer {
     const trimmedName = name.trim()
 
     return {
@@ -208,7 +215,32 @@ export class LobbyStore {
         },
         rotationY: 0,
       },
+      appearance,
     }
+  }
+
+  public updatePlayerAppearance(socketId: string, appearance: CarAppearance): LobbySnapshot | null {
+    const lobbyId = this.socketToLobbyId.get(socketId)
+
+    if (!lobbyId) {
+      return null
+    }
+
+    const lobby = this.lobbies.get(lobbyId)
+
+    if (!lobby) {
+      return null
+    }
+
+    const player = lobby.players.find((currentPlayer) => currentPlayer.socketId === socketId)
+
+    if (!player) {
+      return null
+    }
+
+    player.appearance = appearance
+
+    return toSnapshot(lobby)
   }
 
   public updatePlayerTransform(socketId: string, transform: PlayerTransform): LobbySnapshot | null {

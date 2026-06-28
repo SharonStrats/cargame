@@ -1,5 +1,15 @@
 export type UserId = string
 
+export interface CarAppearance {
+  carId: string
+  color: number
+}
+
+export const DEFAULT_CAR_APPEARANCE: CarAppearance = {
+  carId: 'starter-sprint',
+  color: 0x4cc9f0,
+}
+
 export interface PlayerTransform {
   position: {
     x: number
@@ -15,6 +25,7 @@ export interface PlayerProfile {
   name: string
   connected: boolean
   transform: PlayerTransform
+  appearance: CarAppearance
 }
 
 export interface RoomSummary {
@@ -41,12 +52,13 @@ export interface ChatMessage {
 }
 
 export interface ClientToServerEvents {
-  createLobby: (payload: { name: string }) => void
-  joinLobby: (payload: { lobbyId: string; name: string }) => void
+  createLobby: (payload: { name: string; appearance?: CarAppearance }) => void
+  joinLobby: (payload: { lobbyId: string; name: string; appearance?: CarAppearance }) => void
   leaveLobby: () => void
   startGame: () => void
   sendChatMessage: (payload: { content: string }) => void
   updatePlayerTransform: (payload: PlayerTransform) => void
+  updatePlayerAppearance: (payload: CarAppearance) => void
 }
 
 export interface ServerToClientEvents {

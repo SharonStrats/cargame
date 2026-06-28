@@ -34,8 +34,8 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, Record<string,
 })
 
 io.on('connection', (socket) => {
-  socket.on('createLobby', ({ name }) => {
-    const snapshot = lobbyStore.createLobby(socket.id, name)
+  socket.on('createLobby', ({ name, appearance }) => {
+    const snapshot = lobbyStore.createLobby(socket.id, name, undefined, appearance)
 
     socket.data.lobbyId = snapshot.lobby.id
     socket.join(snapshot.lobby.id)
@@ -57,8 +57,8 @@ io.on('connection', (socket) => {
     })
   })
 
-  socket.on('joinLobby', ({ lobbyId, name }) => {
-    const snapshot = lobbyStore.joinLobby(socket.id, lobbyId, name)
+  socket.on('joinLobby', ({ lobbyId, name, appearance }) => {
+    const snapshot = lobbyStore.joinLobby(socket.id, lobbyId, name, appearance)
 
     if (!snapshot) {
       socket.emit('lobbyError', { message: 'Lobby not found or full.' })
@@ -167,6 +167,22 @@ io.on('connection', (socket) => {
         transform,
       })
     }
+  })
+
+  socket.on('updatePlayerAppearance', (appearance) => {
+    const snapshot = lobbyStore.updatePlayerAppearance(socket.id, appearance)
+
+    if (!snapshot) {
+      return
+    }
+
+    io.to(snapshot.lobby.id).emit('lobbyState', {
+      lobbyId: snapshot.lobby.id,
+      hostSocketId: snapshot.hostSocketId,
+      gameStarted: snapshot.gameStarted,
+      room: snapshot.room,
+      players: snapshot.players,
+    })
   })
 
   socket.on('disconnect', () => {

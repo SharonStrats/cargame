@@ -1,5 +1,6 @@
 import './style.css'
 import { html, render } from 'lit'
+import { DEFAULT_CAR_APPEARANCE, type CarAppearance } from '@cargame/shared'
 import type { GameClientSnapshot } from './client/GameClient'
 import { GameClient } from './client/GameClient'
 import { GameCanvas } from './game/GameCanvas'
@@ -17,15 +18,17 @@ const gameClient = new GameClient()
 let currentSnapshot: GameClientSnapshot = gameClient.getSnapshot()
 let gameCanvas: GameCanvas | null = null
 let sceneContainer: HTMLDivElement | null = null
+let draftAppearance: CarAppearance = DEFAULT_CAR_APPEARANCE
+let skinPickerOpen = false
 
 const handleCreateLobby = (event: Event) => {
-  const detail = (event as CustomEvent<{ name: string }>).detail
-  gameClient.createLobby(detail.name)
+  const detail = (event as CustomEvent<{ name: string; appearance: CarAppearance }>).detail
+  gameClient.createLobby(detail.name, detail.appearance)
 }
 
 const handleJoinLobby = (event: Event) => {
-  const detail = (event as CustomEvent<{ name: string; lobbyId: string }>).detail
-  gameClient.joinLobby(detail.lobbyId, detail.name)
+  const detail = (event as CustomEvent<{ name: string; lobbyId: string; appearance: CarAppearance }>).detail
+  gameClient.joinLobby(detail.lobbyId, detail.name, detail.appearance)
 }
 
 const handlePlayGame = () => {
@@ -34,6 +37,36 @@ const handlePlayGame = () => {
   }
 
   gameClient.startGame()
+}
+
+const handleOpenSkinPicker = () => {
+  console.log('[skin-picker] open requested', {
+    mode: currentSnapshot.gameStarted ? 'game' : currentSnapshot.lobbyId ? 'lobby' : 'login',
+    currentSkin: draftAppearance,
+  })
+  skinPickerOpen = true
+  renderApp()
+}
+
+const handleCloseSkinPicker = () => {
+  console.log('[skin-picker] close requested')
+  skinPickerOpen = false
+  renderApp()
+}
+
+const handleSelectSkin = (event: Event) => {
+  const detail = (event as CustomEvent<{ appearance: CarAppearance }>).detail
+
+  console.log('[skin-picker] skin selected', detail.appearance)
+
+  draftAppearance = detail.appearance
+  skinPickerOpen = false
+
+  if (currentSnapshot.lobbyId) {
+    gameClient.updatePlayerAppearance(detail.appearance)
+  }
+
+  renderApp()
 }
 
 const renderApp = () => {
@@ -60,13 +93,17 @@ const renderApp = () => {
     if (appMode === 'lobby') {
       return html`<game-lobby
         .snapshot=${currentSnapshot}
+        .appearance=${draftAppearance}
         @play-game=${handlePlayGame}
+        @pick-skin=${handleOpenSkinPicker}
       ></game-lobby>`
     }
 
     return html`<game-login
+      .appearance=${draftAppearance}
       @create-lobby=${handleCreateLobby}
       @join-lobby=${handleJoinLobby}
+      @pick-skin=${handleOpenSkinPicker}
     ></game-login>`
   })()
 
@@ -90,6 +127,12 @@ const renderApp = () => {
               <div id="scene" aria-label="3D scene"></div>
             `}
       </section>
+      <game-car-skin-picker
+        .open=${skinPickerOpen}
+        .appearance=${draftAppearance}
+        @close-picker=${handleCloseSkinPicker}
+        @select-skin=${handleSelectSkin}
+      ></game-car-skin-picker>
     `,
     app,
   )

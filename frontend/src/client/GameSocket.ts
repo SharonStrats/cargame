@@ -1,5 +1,6 @@
 import type { LobbyStatePayload } from '@cargame/shared'
 import type { ChatMessage } from '@cargame/shared'
+import type { CarAppearance } from '@cargame/shared'
 import type { PlayerTransform } from '@cargame/shared'
 import { SocketClient } from './SocketClient'
 
@@ -56,12 +57,12 @@ export class GameSocket {
     }
   }
 
-  public createLobby(name: string) {
-    this.socketClient.emit('createLobby', { name })
+  public createLobby(name: string, appearance?: CarAppearance) {
+    this.socketClient.emit('createLobby', { name, appearance })
   }
 
-  public joinLobby(lobbyId: string, name: string) {
-    this.socketClient.emit('joinLobby', { lobbyId, name })
+  public joinLobby(lobbyId: string, name: string, appearance?: CarAppearance) {
+    this.socketClient.emit('joinLobby', { lobbyId, name, appearance })
   }
 
   public leaveLobby() {
@@ -78,6 +79,10 @@ export class GameSocket {
 
   public updatePlayerTransform(transform: PlayerTransform) {
     this.socketClient.emit('updatePlayerTransform', transform)
+  }
+
+  public updatePlayerAppearance(appearance: CarAppearance) {
+    this.socketClient.emit('updatePlayerAppearance', appearance)
   }
 
   public disconnect() {

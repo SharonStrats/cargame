@@ -1,4 +1,4 @@
-import type { ChatMessage, LobbyStatePayload, PlayerProfile, PlayerTransform } from '@cargame/shared'
+import type { CarAppearance, ChatMessage, LobbyStatePayload, PlayerProfile, PlayerTransform } from '@cargame/shared'
 import { GameSocket, type GameSocketUpdate } from './GameSocket'
 
 export interface GameClientSnapshot {
@@ -186,12 +186,12 @@ export class GameClient {
     }
   }
 
-  public createLobby(name: string) {
-    this.gameSocket.createLobby(name)
+  public createLobby(name: string, appearance?: CarAppearance) {
+    this.gameSocket.createLobby(name, appearance)
   }
 
-  public joinLobby(lobbyId: string, name: string) {
-    this.gameSocket.joinLobby(lobbyId, name)
+  public joinLobby(lobbyId: string, name: string, appearance?: CarAppearance) {
+    this.gameSocket.joinLobby(lobbyId, name, appearance)
   }
 
   public leaveLobby() {
@@ -208,5 +208,9 @@ export class GameClient {
 
   public updatePlayerTransform(transform: PlayerTransform) {
     this.gameSocket.updatePlayerTransform(transform)
+  }
+
+  public updatePlayerAppearance(appearance: CarAppearance) {
+    this.gameSocket.updatePlayerAppearance(appearance)
   }
 }

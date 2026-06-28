@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { PlayerProfile, PlayerTransform } from '@cargame/shared'
+import { DEFAULT_CAR_APPEARANCE, type PlayerProfile, type PlayerTransform } from '@cargame/shared'
 import type { GameInputState } from './InputManager'
 import { CarController } from './CarController'
 import { PlayerCar } from './PlayerCar'
@@ -106,7 +106,8 @@ export class GameWorld {
         car = new PlayerCar({
           id: player.id,
           name: player.name,
-          design: getCarDesign(index % 2 === 0 ? 'starter-sprint' : 'dune-runner'),
+          design: getCarDesign(player.appearance?.carId ?? DEFAULT_CAR_APPEARANCE.carId),
+          appearance: player.appearance ?? DEFAULT_CAR_APPEARANCE,
         })
 
         this.playerCars.set(player.id, car)
@@ -118,6 +119,7 @@ export class GameWorld {
       }
 
       car.setName(player.name)
+      car.setAppearance(player.appearance ?? DEFAULT_CAR_APPEARANCE)
 
       if (player.id !== this.localPlayerId) {
         car.setPosition(player.transform.position.x, player.transform.position.y, player.transform.position.z)
