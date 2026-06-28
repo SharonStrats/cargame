@@ -1,11 +1,9 @@
 import './style.css'
 import { html, render } from 'lit'
-import { DEFAULT_CAR_APPEARANCE, type CarAppearance } from '@cargame/shared'
+import { DEFAULT_CAR_APPEARANCE, type CarAppearance, type PlayerProfile, type PlayerTransform } from '@cargame/shared'
 import type { GameClientSnapshot } from './client/GameClient'
 import { GameClient } from './client/GameClient'
-import { GameCanvas } from './game/GameCanvas'
 import './components/lobby'
-import './components/chat'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 
@@ -15,11 +13,37 @@ if (!app) {
 
 const gameClient = new GameClient()
 
+type GameCanvasLike = {
+  destroy: () => void
+  setLocalPlayerId: (playerId: string | null) => void
+  syncPlayers: (players: PlayerProfile[]) => void
+  getLocalPlayerTransform: () => PlayerTransform | null
+  applyPlayerTransform: (playerId: string, transform: PlayerTransform) => void
+}
+
+type GameCanvasConstructor = new (container: HTMLElement) => GameCanvasLike
+
 let currentSnapshot: GameClientSnapshot = gameClient.getSnapshot()
-let gameCanvas: GameCanvas | null = null
+let gameCanvas: GameCanvasLike | null = null
+let gameCanvasConstructor: GameCanvasConstructor | null = null
+let gameUiLoadPromise: Promise<void> | null = null
+let gameUiLoaded = false
 let sceneContainer: HTMLDivElement | null = null
 let draftAppearance: CarAppearance = DEFAULT_CAR_APPEARANCE
 let skinPickerOpen = false
+
+const ensureGameUiLoaded = () => {
+  if (!gameUiLoadPromise) {
+    gameUiLoadPromise = Promise.all([import('./game/GameCanvas'), import('./components/chat')]).then(
+      ([gameCanvasModule]) => {
+        gameCanvasConstructor = gameCanvasModule.GameCanvas as GameCanvasConstructor
+        gameUiLoaded = true
+      },
+    )
+  }
+
+  return gameUiLoadPromise
+}
 
 const handleCreateLobby = (event: Event) => {
   const detail = (event as CustomEvent<{ name: string; appearance: CarAppearance }>).detail
@@ -36,6 +60,7 @@ const handlePlayGame = () => {
     return
   }
 
+  void ensureGameUiLoaded()
   gameClient.startGame()
 }
 
@@ -115,9 +140,10 @@ const renderApp = () => {
               <div class="game-hud">
                 <p class="eyebrow">Game Mode</p>
                 <p>Race view is active.</p>
+                ${gameUiLoaded ? '' : html`<p>Loading game assets...</p>`}
               </div>
               <div id="scene" aria-label="3D scene"></div>
-              ${mainContent}
+              ${gameUiLoaded ? mainContent : html`<div class="game-loading">Preparing the race...</div>`}
             `
           : html`
               <div class="scene-copy">
@@ -154,13 +180,23 @@ const syncGameCanvas = () => {
     return
   }
 
-  if (!gameCanvas) {
-    gameCanvas = new GameCanvas(sceneContainer)
+  if (!gameCanvasConstructor) {
+    void ensureGameUiLoaded().then(() => {
+      if (!currentSnapshot.gameStarted) {
+        return
+      }
+
+      renderApp()
+      syncGameCanvas()
+    })
+    return
   }
 
-  gameCanvas.setLocalPlayerId(
-    currentSnapshot.players.find((player) => player.socketId === currentSnapshot.socketId)?.id ?? null,
-  )
+  if (!gameCanvas) {
+    gameCanvas = new gameCanvasConstructor(sceneContainer)
+  }
+
+  gameCanvas.setLocalPlayerId(currentSnapshot.players.find((player) => player.socketId === currentSnapshot.socketId)?.id ?? null)
   gameCanvas.syncPlayers(currentSnapshot.players)
 }
 
