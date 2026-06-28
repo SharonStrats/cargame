@@ -2,14 +2,14 @@ import { css, html, LitElement } from 'lit'
 import { DEFAULT_CAR_APPEARANCE, type CarAppearance } from '@cargame/shared'
 
 const SKIN_COLORS = [
-  0x4cc9f0,
-  0xf94144,
-  0x43aa8b,
-  0xf9c74f,
-  0x9b5de5,
-  0xf9844a,
-  0xf8fafc,
-  0x1f2937,
+  0xd946ef,
+  0x334155,
+  0x64748b,
+  0x14b8a6,
+  0x22c55e,
+  0xef4444,
+  0xc2410c,
+  0xeab308,
 ]
 
 function colorToHex(color: number) {

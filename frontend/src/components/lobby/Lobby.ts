@@ -103,6 +103,11 @@ export class Lobby extends LitElement {
       font: inherit;
     }
 
+    .secondary {
+      background: rgba(255, 255, 255, 0.12);
+      color: #f3f6ff;
+    }
+
     button[disabled] {
       opacity: 0.55;
       cursor: not-allowed;
