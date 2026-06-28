@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { PlayerProfile, PlayerTransform } from '@cargame/shared'
 import { InputManager } from './InputManager'
 import { GameWorld } from './GameWorld'
+import type { TriggerEvent } from './world'
 
 export interface GameCanvasOptions {
   backgroundColor?: number
@@ -96,5 +97,9 @@ export class GameCanvas {
 
   public applyPlayerTransform(playerId: string, transform: PlayerTransform) {
     this.world.applyPlayerTransform(playerId, transform)
+  }
+
+  public onTriggerEvent(listener: (event: TriggerEvent) => void) {
+    return this.world.onTriggerEvent(listener)
   }
 }

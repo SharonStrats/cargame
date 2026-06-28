@@ -5,6 +5,7 @@ import { CarController } from './CarController'
 import { PlayerCar } from './PlayerCar'
 import { getCarDesign } from './cars/CarCatalog'
 import { createCarGroup } from './cars/CarFactory'
+import { ChunkManager, TriggerManager, type TriggerEvent } from './world'
 
 export interface GameWorldOptions {
   showcaseEnabled?: boolean
@@ -19,10 +20,13 @@ const PLAYER_HEIGHT = -0.55
 
 export class GameWorld {
   private readonly scene: THREE.Scene
+  private readonly chunkManager: ChunkManager
+  private readonly triggerManager: TriggerManager
   private readonly playerCars = new Map<string, PlayerCar>()
   private readonly localCarController = new CarController()
   private readonly showcaseCar: THREE.Group | null
   private readonly showcasePedestal: THREE.Mesh | null
+  private readonly triggerListeners = new Set<(event: TriggerEvent) => void>()
   private localPlayerId: string | null = null
   private elapsedTime = 0
 
@@ -39,6 +43,9 @@ export class GameWorld {
   constructor(scene: THREE.Scene, options: GameWorldOptions = {}) {
     this.scene = scene
     this.buildEnvironment()
+    this.chunkManager = new ChunkManager(this.scene)
+    this.triggerManager = new TriggerManager(this.scene)
+    this.triggerManager.onTrigger((event) => this.emitTriggerEvent(event))
 
     if (options.showcaseEnabled ?? true) {
       this.showcasePedestal = this.buildShowcasePedestal()
@@ -50,14 +57,7 @@ export class GameWorld {
   }
 
   private buildEnvironment() {
-    const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(6, 64),
-      new THREE.MeshStandardMaterial({ color: 0x1b2338, roughness: 0.95 }),
-    )
-
-    floor.rotation.x = -Math.PI / 2
-    floor.position.y = -0.9
-    this.scene.add(floor)
+    this.scene.fog = new THREE.Fog(0x0b1020, 18, 90)
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.8)
     this.scene.add(ambientLight)
@@ -174,18 +174,25 @@ export class GameWorld {
   public update(delta: number, input: GameInputState) {
     this.elapsedTime += delta
     this.updateShowcase(delta)
+    let localTransform: PlayerTransform | null = null
 
     if (!this.localPlayerId) {
+      this.chunkManager.update(0)
       return
     }
 
     const controlledCar = this.playerCars.get(this.localPlayerId)
 
     if (!controlledCar) {
+      this.chunkManager.update(0)
       return
     }
 
     this.localCarController.update(controlledCar, delta, input)
+    localTransform = this.localCarController.getTransform()
+
+    this.chunkManager.update(localTransform.position.z)
+    this.triggerManager.update(localTransform)
   }
 
   private updateShowcase(delta: number) {
@@ -204,6 +211,8 @@ export class GameWorld {
     }
 
     this.playerCars.clear()
+    this.chunkManager.dispose()
+    this.triggerManager.dispose()
 
     if (this.showcaseCar) {
       this.scene.remove(this.showcaseCar)
@@ -211,6 +220,20 @@ export class GameWorld {
 
     if (this.showcasePedestal) {
       this.scene.remove(this.showcasePedestal)
+    }
+  }
+
+  public onTriggerEvent(listener: (event: TriggerEvent) => void) {
+    this.triggerListeners.add(listener)
+
+    return () => {
+      this.triggerListeners.delete(listener)
+    }
+  }
+
+  private emitTriggerEvent(event: TriggerEvent) {
+    for (const listener of this.triggerListeners) {
+      listener(event)
     }
   }
 }
