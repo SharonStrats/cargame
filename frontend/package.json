@@ -4,9 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prebuild": "npm run build --prefix ../packages/shared",
     "dev": "vite",
+    "dev:raw": "vite",
     "dev:backend": "npm --prefix ../backend run dev",
     "dev:all": "node scripts/dev-all.mjs",
+    "predev": "npm run build --prefix ../packages/shared",
     "watch": "tsc -w --noEmit",
     "build": "tsc && vite build",
     "preview": "vite preview"
