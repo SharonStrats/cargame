@@ -43,7 +43,7 @@ function toPlayerProfile(player: LobbyPlayer): PlayerProfile {
     name: player.name,
     connected: player.connected,
     transform: player.transform,
-    appearance: player.appearance,
+    appearance: player.appearance ?? DEFAULT_CAR_APPEARANCE,
   }
 }
 
@@ -215,7 +215,7 @@ export class LobbyStore {
         },
         rotationY: 0,
       },
-      appearance,
+      appearance: appearance ?? DEFAULT_CAR_APPEARANCE,
     }
   }
 

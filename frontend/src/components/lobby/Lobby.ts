@@ -150,17 +150,21 @@ export class Lobby extends LitElement {
               <p>Players: ${this.snapshot.players.length}</p>
               <ul>
                 ${this.snapshot.players.map(
-                  (player) => html`
+                  (player) => {
+                    const appearance = player.appearance ?? DEFAULT_CAR_APPEARANCE
+
+                    return html`
                     <li>
                       <div class="player-row">
-                        ${this.renderPlayerCar(player.appearance.color)}
+                        ${this.renderPlayerCar(appearance.color)}
                         <div>
                           <span class="player-name">${player.name}</span>
                           ${player.connected ? '' : html`<span class="player-status">(offline)</span>`}
                         </div>
                       </div>
                     </li>
-                  `,
+                  `
+                  },
                 )}
               </ul>
             `
